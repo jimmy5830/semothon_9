@@ -4,10 +4,8 @@ import styled from '@emotion/styled';
 /* ─── 임시 데이터 ─── */
 const MOCK_RECORDS = [
   { id: 1, activity: '쓰레기 줍기', location: '한강공원',  date: '2025-03-28', point: 50,  status: 'approved', emoji: '🗑️' },
-  { id: 2, activity: '분리수거',    location: '마포구 자택', date: '2025-03-27', point: 30,  status: 'approved', emoji: '♻️' },
-  { id: 3, activity: '플로깅',      location: '북한산',      date: '2025-03-25', point: 80,  status: 'pending',  emoji: '🏃' },
-  { id: 4, activity: '해안 정화',   location: '인천 을왕리', date: '2025-03-22', point: 120, status: 'approved', emoji: '🌊' },
-  { id: 5, activity: '쓰레기 줍기', location: '홍대입구역',  date: '2025-03-20', point: 50,  status: 'rejected', emoji: '🗑️' },
+  { id: 2, activity: '플로깅',      location: '북한산',      date: '2025-03-25', point: 80,  status: 'pending',  emoji: '🏃' },
+  { id: 3, activity: '쓰레기 줍기', location: '홍대입구역',  date: '2025-03-20', point: 50,  status: 'rejected', emoji: '🗑️' },
 ];
 
 const STATUS_MAP = {
