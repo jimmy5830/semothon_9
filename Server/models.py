@@ -41,23 +41,13 @@ class Activity(Base):
     desc = Column(String, nullable=False, default="")
 
 
-class MatchQueue(Base):
-    __tablename__ = "match_queue"
-
-    id          = Column(Integer, primary_key=True, index=True)
-    user_id     = Column(Integer, ForeignKey("users.id"), nullable=False)
-    activity_id = Column(Integer, ForeignKey("activities.id"), nullable=False)
-    created_at  = Column(DateTime, default=lambda: datetime.now(timezone.utc))
-
-    user     = relationship("User")
-    activity = relationship("Activity")
-
-
 class Room(Base):
     __tablename__ = "rooms"
 
     id          = Column(Integer, primary_key=True, index=True)
     activity_id = Column(Integer, ForeignKey("activities.id"), nullable=False)
+    capacity    = Column(Integer, nullable=False, default=4)
+    status      = Column(String, nullable=False, default="open")  # open / closed
     created_at  = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     activity = relationship("Activity")
@@ -74,4 +64,14 @@ class RoomMember(Base):
 
     room = relationship("Room", back_populates="members")
     user = relationship("User")
-    
+
+
+class Proof(Base):
+    __tablename__ = "proofs"
+
+    id          = Column(Integer, primary_key=True, index=True)
+    room_id     = Column(Integer, ForeignKey("rooms.id"), nullable=False)
+    user_id     = Column(Integer, ForeignKey("users.id"), nullable=False)
+    image_url   = Column(String)
+    description = Column(String)
+    status      = Column(String, default="pending")  # pending / approved
