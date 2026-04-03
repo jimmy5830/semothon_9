@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import styled from '@emotion/styled';
 import { Global, css } from '@emotion/react';
 
+import DevLogin from './pages/DevLogin';
 import Home from './pages/Home';
 import Matching from './pages/Matching';
 import Records from './pages/Records';
@@ -67,36 +68,46 @@ const PageArea = styled.main`
   overflow-y: auto;
   overflow-x: hidden;
   padding-bottom: var(--nav-height);
-  /* 스크롤바 숨김 */
   scrollbar-width: none;
   &::-webkit-scrollbar { display: none; }
 `;
 
+/* BottomNav가 필요 없는 경로 목록 */
+const NO_NAV_PATHS = ['/'];
+
 function AppInner() {
-  return (
-    <AppShell>
-      <PageArea>
-        <Routes>
-          <Route path="/"         element={<Home />} />
-          <Route path="/matching" element={<Matching />} />
-          <Route path="/records"  element={<Records />} />
-          <Route path="/mypage"   element={<MyPage />} />
-        </Routes>
-      </PageArea>
-      <BottomNav />
-    </AppShell>
-  );
+    const location = useLocation();
+    const showNav = !NO_NAV_PATHS.includes(location.pathname);
+
+    return (
+        <AppShell>
+            <PageArea style={showNav ? {} : { paddingBottom: 0 }}>
+                <Routes>
+                    {/* 개발용 임시 로그인 — 로그인 구현 후 Auth 페이지로 교체 */}
+                    <Route path="/"         element={<DevLogin />} />
+
+                    {/* 메인 페이지 */}
+                    <Route path="/home"     element={<Home />} />
+                    <Route path="/matching" element={<Matching />} />
+                    <Route path="/records"  element={<Records />} />
+                    <Route path="/mypage"   element={<MyPage />} />
+                </Routes>
+            </PageArea>
+
+            {showNav && <BottomNav />}
+        </AppShell>
+    );
 }
 
 function App() {
-  return (
-    <>
-      <Global styles={globalStyles} />
-      <Router>
-        <AppInner />
-      </Router>
-    </>
-  );
+    return (
+        <>
+            <Global styles={globalStyles} />
+            <Router>
+                <AppInner />
+            </Router>
+        </>
+    );
 }
 
 export default App;

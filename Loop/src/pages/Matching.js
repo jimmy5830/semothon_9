@@ -1,26 +1,26 @@
-import React, { useState } from 'react';
-import MatchingRoom from './MatchingRoom';
-import styled, { keyframes } from '@emotion/styled';
+import React, { useState, useEffect, useRef } from 'react';
+import styled from '@emotion/styled';
 import { keyframes as kf } from '@emotion/react';
+import MatchingRoom from './MatchingRoom';
+import { api, getUserId } from '../api';
 
-/* ─── 활동별 SVG 아이콘 ─── */
+/* ─── 타입별 아이콘 ─── */
 const ICONS = {
     tumbler: (
         <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-            <rect x="8" y="4" width="12" height="2.5" rx="1.25" fill="var(--color-primary)"/>
-            <path d="M9.5 6.5L10.5 23C10.5 23.55 10.95 24 11.5 24H16.5C17.05 24 17.5 23.55 17.5 23L18.5 6.5H9.5Z"
-                  fill="var(--color-primary-pale)" stroke="var(--color-primary)" strokeWidth="1.5" strokeLinejoin="round"/>
-            <path d="M11 11H17" stroke="var(--color-primary)" strokeWidth="1.5" strokeLinecap="round"/>
-            <path d="M11.5 15H16.5" stroke="var(--color-primary)" strokeWidth="1.3" strokeLinecap="round" strokeOpacity="0.6"/>
+            <rect x="7" y="4" width="14" height="20" rx="4"
+                  fill="none" stroke="var(--color-primary)" strokeWidth="1.8"/>
+            <path d="M10 4V8C10 9.1 10.9 10 12 10H16C17.1 10 18 9.1 18 8V4"
+                  stroke="var(--color-primary)" strokeWidth="1.5" strokeLinejoin="round"/>
+            <circle cx="14" cy="17" r="2.5" fill="var(--color-primary)" opacity="0.3"/>
         </svg>
     ),
     trash: (
         <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-            <path d="M6 10L7.5 22C7.5 22.55 7.95 23 8.5 23H19.5C20.05 23 20.5 22.55 20.5 22L22 10H6Z"
-                  fill="var(--color-primary-pale)" stroke="var(--color-primary)" strokeWidth="1.5" strokeLinejoin="round"/>
-            <path d="M4 10H24" stroke="var(--color-primary)" strokeWidth="1.5" strokeLinecap="round"/>
-            <rect x="10" y="5" width="8" height="3" rx="1.5" stroke="var(--color-primary)" strokeWidth="1.5" fill="none"/>
-            <path d="M12 14V19M16 14V19" stroke="var(--color-primary)" strokeWidth="1.5" strokeLinecap="round"/>
+            <path d="M6 8H22M10 8V6H18V8M9 8L10 22H18L19 8"
+                  stroke="var(--color-primary)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M12 12V18M16 12V18"
+                  stroke="var(--color-primary)" strokeWidth="1.5" strokeLinecap="round"/>
         </svg>
     ),
     recycle: (
@@ -53,15 +53,31 @@ const ICONS = {
     ),
 };
 
-/* ─── 임시 데이터 (참여 인원 2~4명) ─── */
+/** 활동 type 문자열 → 아이콘 */
+const getIcon = (type) => {
+    const map = {
+        '텀블러':    ICONS.tumbler,
+        '쓰레기 줍기': ICONS.trash,
+        '분리수거':  ICONS.recycle,
+        '플로깅':    ICONS.plogging,
+        '해안 정화': ICONS.ocean,
+    };
+    return map[type] || ICONS.recycle;
+};
+
+/** 활동 type 문자열 → 이모지 */
+const getEmoji = (type) => {
+    const map = {
+        '텀블러':    '🥤',
+        '쓰레기 줍기': '🗑️',
+        '분리수거':  '♻️',
+        '플로깅':    '🏃',
+        '해안 정화': '🌊',
+    };
+    return map[type] || '✨';
+};
+
 const ACTIVITY_TYPES = ['전체', '텀블러', '쓰레기 줍기', '분리수거', '플로깅', '해안 정화'];
-const MOCK_CHALLENGES = [
-    { id: 1, name: '텀블러 사용하기',   desc: '현재 4명이 함께 하고 있어요', type: '텀블러',    icon: ICONS.tumbler  },
-    { id: 2, name: '쓰레기 줍기',      desc: '현재 2명이 함께 하고 있어요', type: '쓰레기 줍기', icon: ICONS.trash    },
-    { id: 3, name: '분리수거 실천하기', desc: '현재 3명이 함께 하고 있어요', type: '분리수거',   icon: ICONS.recycle  },
-    { id: 4, name: '플로깅 챌린지',    desc: '현재 2명이 함께 하고 있어요', type: '플로깅',    icon: ICONS.plogging },
-    { id: 5, name: '해안 정화 활동',   desc: '현재 4명이 함께 하고 있어요', type: '해안 정화',  icon: ICONS.ocean    },
-];
 
 /* ─── 애니메이션 ─── */
 const pulseRing = kf`
@@ -69,19 +85,16 @@ const pulseRing = kf`
   50%  { transform: scale(1.05); opacity: 0.15; }
   100% { transform: scale(0.85); opacity: 0.6; }
 `;
-
 const pulseRing2 = kf`
   0%   { transform: scale(0.75); opacity: 0.4; }
   50%  { transform: scale(1.15); opacity: 0.08; }
   100% { transform: scale(0.75); opacity: 0.4; }
 `;
-
 const scaleIn = kf`
   0%   { transform: scale(0.7); opacity: 0; }
   60%  { transform: scale(1.08); }
   100% { transform: scale(1);   opacity: 1; }
 `;
-
 const fadeSlideUp = kf`
   from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -94,13 +107,11 @@ const Page = styled.div`
   display: flex;
   flex-direction: column;
 `;
-
 const TopBar = styled.div`
   padding: 56px 20px 0;
   h1 { font-size: 22px; font-weight: 800; }
   p  { font-size: 14px; color: var(--color-text-secondary); margin-top: 4px; }
 `;
-
 const FilterScroll = styled.div`
   display: flex;
   gap: 8px;
@@ -109,7 +120,6 @@ const FilterScroll = styled.div`
   scrollbar-width: none;
   &::-webkit-scrollbar { display: none; }
 `;
-
 const FilterChip = styled.button`
   flex-shrink: 0;
   background: ${p => p.active ? 'var(--color-primary)' : 'var(--color-surface)'};
@@ -123,69 +133,59 @@ const FilterChip = styled.button`
   cursor: pointer;
   transition: all 0.15s;
 `;
-
-const Section = styled.section`
-  margin-top: 24px;
-  padding: 0 20px;
+const Section = styled.div`
+  padding: 16px 16px 0;
+  flex: 1;
 `;
-
 const SectionHeader = styled.div`
-  margin-bottom: 14px;
-  h3 { font-size: 17px; font-weight: 800; }
-  p  { font-size: 13px; color: var(--color-text-secondary); margin-top: 2px; }
-`;
-
-const ActivityCard = styled.div`
-  background: var(--color-surface);
-  border-radius: var(--radius-md);
-  padding: 18px;
-  margin-bottom: 12px;
-  box-shadow: var(--shadow-sm);
-  border: 1.5px solid transparent;
   display: flex;
   align-items: center;
-  gap: 16px;
-  transition: border-color 0.15s, box-shadow 0.15s;
-  &:active {
-    border-color: var(--color-primary-light);
-    box-shadow: var(--shadow-md);
-  }
+  justify-content: space-between;
+  margin-bottom: 12px;
+  h3 { font-size: 16px; font-weight: 800; }
+  p  { font-size: 13px; color: var(--color-text-secondary); }
 `;
-
+const ActivityCard = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-bottom: 10px;
+  box-shadow: var(--shadow-sm);
+  animation: ${fadeSlideUp} 0.3s ease both;
+`;
 const IconCircle = styled.div`
-  width: 56px;
-  height: 56px;
-  border-radius: 16px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
   background: var(--color-primary-pale);
-  border: 1.5px solid var(--color-border);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 `;
-
 const ActivityInfo = styled.div`
   flex: 1;
   min-width: 0;
-  .name { font-size: 16px; font-weight: 800; }
-  .desc { font-size: 13px; color: var(--color-text-secondary); margin-top: 4px; }
+  .name { font-size: 15px; font-weight: 800; }
+  .desc { font-size: 12px; color: var(--color-text-secondary); margin-top: 3px; }
 `;
-
 const JoinBtn = styled.button`
-  flex-shrink: 0;
-  background: ${p => p.joined ? 'var(--color-border)' : 'var(--color-primary)'};
-  color: ${p => p.joined ? 'var(--color-text-secondary)' : 'white'};
+  background: ${p => p.joined ? 'var(--color-primary-pale)' : 'var(--color-primary)'};
+  color: ${p => p.joined ? 'var(--color-primary)' : 'white'};
   border: none;
   border-radius: var(--radius-sm);
   padding: 10px 18px;
   font-family: var(--font);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 800;
   cursor: ${p => p.joined ? 'default' : 'pointer'};
-  transition: all 0.15s;
-  white-space: nowrap;
+  flex-shrink: 0;
+  transition: opacity 0.15s;
+  &:active { opacity: 0.8; }
 `;
-
 const EmptyState = styled.div`
   text-align: center;
   padding: 48px 20px;
@@ -193,7 +193,7 @@ const EmptyState = styled.div`
   span { font-size: 14px; color: var(--color-text-secondary); }
 `;
 
-/* ─── 매칭 화면 스타일 ─── */
+/* ─── 매칭 대기 화면 스타일 ─── */
 const MatchingArea = styled.div`
   flex: 1;
   display: flex;
@@ -201,18 +201,15 @@ const MatchingArea = styled.div`
   align-items: center;
   justify-content: center;
   padding: 40px 20px;
-  animation: ${fadeSlideUp} 0.35s ease both;
 `;
-
 const CircleWrap = styled.div`
   position: relative;
-  width: 220px;
-  height: 220px;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 220px;
+  height: 220px;
 `;
-
 const Ring = styled.div`
   position: absolute;
   border-radius: 50%;
@@ -222,7 +219,6 @@ const Ring = styled.div`
   width: ${p => p.size}px;
   height: ${p => p.size}px;
 `;
-
 const Ring2 = styled.div`
   position: absolute;
   border-radius: 50%;
@@ -232,7 +228,6 @@ const Ring2 = styled.div`
   width: ${p => p.size}px;
   height: ${p => p.size}px;
 `;
-
 const CoreCircle = styled.div`
   position: relative;
   z-index: 2;
@@ -251,7 +246,6 @@ const CoreCircle = styled.div`
   transition: background 0.5s, box-shadow 0.5s;
   animation: ${p => p.done ? scaleIn : 'none'} 0.45s cubic-bezier(0.34,1.56,0.64,1) both;
 `;
-
 const CircleText = styled.div`
   font-family: var(--font);
   font-size: ${p => p.done ? '17px' : '15px'};
@@ -260,7 +254,6 @@ const CircleText = styled.div`
   text-align: center;
   line-height: 1.3;
 `;
-
 const MatchingLabel = styled.p`
   margin-top: 32px;
   font-size: 15px;
@@ -268,7 +261,6 @@ const MatchingLabel = styled.p`
   color: var(--color-text-secondary);
   animation: ${fadeSlideUp} 0.4s ease 0.1s both;
 `;
-
 const MatchingActivity = styled.p`
   margin-top: 6px;
   font-size: 18px;
@@ -276,7 +268,6 @@ const MatchingActivity = styled.p`
   color: var(--color-text);
   animation: ${fadeSlideUp} 0.4s ease 0.2s both;
 `;
-
 const CancelBtn = styled.button`
   margin-top: 36px;
   background: none;
@@ -292,114 +283,128 @@ const CancelBtn = styled.button`
   transition: border-color 0.15s, color 0.15s;
   &:hover { border-color: var(--color-primary); color: var(--color-primary); }
 `;
+const ErrorMsg = styled.p`
+  margin-top: 16px;
+  font-size: 13px;
+  color: #E53935;
+  font-weight: 600;
+  text-align: center;
+`;
 
 /* ─── 컴포넌트 ─── */
-export default function Matching({ activity, onBack, onEnd, onConfirm }) {
-    const [selectedType, setSelectedType]   = useState('전체');
-    const [joinedIds, setJoinedIds]         = useState([]);
-    const [matchingItem, setMatchingItem]   = useState(null);
-    const [matchDone, setMatchDone]         = useState(false);
-    const [roomItem, setRoomItem]           = useState(null);
+export default function Matching() {
+    const [selectedType, setSelectedType] = useState('전체');
+    const [activities, setActivities]     = useState([]);       // 서버에서 받은 활동 목록
+    const [loading, setLoading]           = useState(true);
+    const [error, setError]               = useState('');
 
-    const handleCancel = () => {
-    setMatchingItem(null);
-    setMatchDone(false);
-};
+    const [matchingItem, setMatchingItem] = useState(null);     // 현재 매칭 중인 활동 객체
+    const [matchDone, setMatchDone]       = useState(false);    // 매칭 완료(2명 이상) 여부
+    const [roomId, setRoomId]             = useState(null);     // 배정된 room_id
+    const [joinedIds, setJoinedIds]       = useState([]);       // 이미 참여한 activity id 목록
+    const [roomItem, setRoomItem]         = useState(null);     // MatchingRoom 에 넘길 활동 객체
 
-    const approveRecord = (recordId) => {
-    const records = JSON.parse(localStorage.getItem('records')) || [];
-    const updated = records.map(r => r.id === recordId ? {...r, status: 'approved'} : r);
-  localStorage.setItem('records', JSON.stringify(updated));
-};
+    const pollingRef = useRef(null);   // 매칭 status polling interval
 
+    // ── 활동 목록 불러오기 ──────────────────────────────────
+    useEffect(() => {
+        api.getActivities()
+            .then(data => {
+                setActivities(data);
+                setLoading(false);
+            })
+            .catch(err => {
+                console.error('활동 목록 불러오기 실패:', err);
+                setError('활동 목록을 불러오지 못했습니다.');
+                setLoading(false);
+            });
+    }, []);
+
+    // ── 컴포넌트 언마운트 시 polling 정리 ──────────────────
+    useEffect(() => {
+        return () => { if (pollingRef.current) clearInterval(pollingRef.current); };
+    }, []);
+
+    // ── 필터 ───────────────────────────────────────────────
     const filtered = selectedType === '전체'
-        ? MOCK_CHALLENGES
-        : MOCK_CHALLENGES.filter(c => c.type === selectedType);
+        ? activities
+        : activities.filter(a => a.type === selectedType);
 
-    const handleJoin = (challenge) => {
-        setMatchingItem(challenge);
+    // ── 매칭 참여 ──────────────────────────────────────────
+    const handleJoin = async (activity) => {
+        setMatchingItem(activity);
         setMatchDone(false);
-        setTimeout(() => setMatchDone(true), 2500);
-    };
+        setError('');
 
-    const handleEnterRoom = () => {
-    setJoinedIds(prev => [...prev, matchingItem.id]); // ✅ 추가
-    setRoomItem(matchingItem);
-    setMatchingItem(null);
-    setMatchDone(false);
-    };
+        try {
+            const res = await api.joinMatching(activity.id);
+            setRoomId(res.room_id);
 
-    const getEmoji = (type) => {
-    switch(type) {
-        case '텀블러': return '🥤';
-        case '쓰레기 줍기': return '🗑️';
-        case '분리수거': return '♻️';
-        case '플로깅': return '🏃';
-        case '해안 정화': return '🌊';
-        default: return '✨';
+            // 3초 대기 후 바로 매칭 완료 처리 (로그인 구현 전 임시)
+            pollingRef.current = setTimeout(() => {
+                setMatchDone(true);
+            }, 3000);
+
+        } catch (err) {
+            setMatchingItem(null);
+            setError(err.message || '매칭 참여에 실패했습니다.');
         }
     };
 
- const handleConfirm = (photo, description) => {
-    // ❗ 1. roomItem 없으면 종료 (에러 방지)
-    if (!roomItem) return;
-
-    // 사용자 정보
-    const user = JSON.parse(localStorage.getItem('user')) || { name: '나' };
-
-    // ❗ 2. 값 미리 저장 (roomItem 사라지기 전에)
-    const activityType = roomItem.type;
-    const emoji = getEmoji(activityType);
-
-    // 📌 3. records 저장 (최대 8개 유지 - 오래된 것부터 자동 삭제)
-    const newRecord = {
-        id: Date.now(),
-        user: user.name,
-        activity: activityType,
-        location: '내 위치',
-        date: new Date().toISOString().slice(0,10),
-        point: 0,
-        status: 'pending',
-        emoji: emoji,
-        photo: photo || null,
-        description: description ? description : ''
+    // ── 매칭 취소 ──────────────────────────────────────────
+    const handleCancel = async () => {
+        if (pollingRef.current) clearInterval(pollingRef.current);
+        try {
+            await api.cancelMatching();
+        } catch (e) {
+            console.error('매칭 취소 실패:', e);
+        }
+        setMatchingItem(null);
+        setMatchDone(false);
+        setRoomId(null);
     };
 
-    const existingRecords = JSON.parse(localStorage.getItem('records')) || [];
-    const updatedRecords = [newRecord, ...existingRecords].slice(0, 8);
-    localStorage.setItem('records', JSON.stringify(updatedRecords));
-    if (onConfirm) onConfirm(newRecord);
-    //setRoomItem(null);
-    const existingFeed = JSON.parse(localStorage.getItem('feed')) || [];
+    // ── 매칭 완료 → 방 입장 ────────────────────────────────
+    const handleEnterRoom = () => {
+        setJoinedIds(prev => [...prev, matchingItem.id]);
+        setRoomItem(matchingItem);
+        setMatchingItem(null);
+        setMatchDone(false);
+    };
 
-    // 📌 6. 홈 강제 업데이트 (같은 탭 문제 해결)
-    window.dispatchEvent(new Event('storage'));
-};
+    // ── MatchingRoom 종료 ───────────────────────────────────
+    const handleRoomEnd = async () => {
+        try {
+            await api.cancelMatching();
+        } catch (e) {
+            console.error('방 퇴장 실패:', e);
+        }
+        setJoinedIds(prev => prev.filter(id => id !== roomItem?.id));
+        setRoomItem(null);
+        setRoomId(null);
+    };
 
+    // ── MatchingRoom 렌더 ───────────────────────────────────
     if (roomItem) {
         return (
             <MatchingRoom
                 activity={roomItem}
+                roomId={roomId}
                 onBack={() => setRoomItem(null)}
-                onConfirm={handleConfirm}
-                onEnd={() => {
-                    setJoinedIds(prev => prev.filter(id => id !== roomItem.id));
-                    setRoomItem(null);
-                }}
+                onEnd={handleRoomEnd}
             />
         );
     }
 
     return (
         <Page>
-            {/* ── 헤더: 항상 유지 ── */}
             <TopBar>
                 <h1>환경 보호 활동 참여</h1>
                 <p>함께하면 더 큰 변화를 만들 수 있어요</p>
             </TopBar>
 
             {matchingItem ? (
-                /* ── 매칭 화면 ── */
+                /* ── 매칭 대기 화면 ── */
                 <MatchingArea>
                     <CircleWrap>
                         <Ring2 size={210} done={matchDone} />
@@ -426,17 +431,14 @@ export default function Matching({ activity, onBack, onEnd, onConfirm }) {
                     ) : (
                         <CancelBtn onClick={handleCancel}>취소</CancelBtn>
                     )}
+                    {error && <ErrorMsg>{error}</ErrorMsg>}
                 </MatchingArea>
             ) : (
                 /* ── 활동 목록 화면 ── */
                 <>
                     <FilterScroll>
                         {ACTIVITY_TYPES.map(f => (
-                            <FilterChip
-                                key={f}
-                                active={selectedType === f}
-                                onClick={() => setSelectedType(f)}
-                            >
+                            <FilterChip key={f} active={selectedType === f} onClick={() => setSelectedType(f)}>
                                 {f}
                             </FilterChip>
                         ))}
@@ -448,30 +450,34 @@ export default function Matching({ activity, onBack, onEnd, onConfirm }) {
                             <p>총 {filtered.length}개의 활동</p>
                         </SectionHeader>
 
-                        {filtered.length === 0 ? (
+                        {loading ? (
+                            <EmptyState><p>⏳</p><span>활동 목록을 불러오는 중...</span></EmptyState>
+                        ) : error ? (
+                            <EmptyState><p>😢 오류</p><span>{error}</span></EmptyState>
+                        ) : filtered.length === 0 ? (
                             <EmptyState>
                                 <p>😢 진행 중인 활동이 없어요</p>
                                 <span>다른 유형으로 필터를 바꿔보세요</span>
                             </EmptyState>
                         ) : (
-                            filtered.map(challenge => (
-                                <ActivityCard key={challenge.id}>
-                                    <IconCircle>{challenge.icon}</IconCircle>
+                            filtered.map(activity => (
+                                <ActivityCard key={activity.id}>
+                                    <IconCircle>{getIcon(activity.type)}</IconCircle>
                                     <ActivityInfo>
-                                        <div className="name">{challenge.name}</div>
-                                        <div className="desc">{challenge.desc}</div>
+                                        <div className="name">{activity.name}</div>
+                                        <div className="desc">{activity.desc}</div>
                                     </ActivityInfo>
                                     <JoinBtn
-                                        joined={joinedIds.includes(challenge.id)}
+                                        joined={joinedIds.includes(activity.id)}
                                         onClick={() => {
-                                            if (joinedIds.includes(challenge.id)) {
-                                                setRoomItem(challenge);
+                                            if (joinedIds.includes(activity.id)) {
+                                                setRoomItem(activity);
                                             } else {
-                                                handleJoin(challenge);
+                                                handleJoin(activity);
                                             }
                                         }}
                                     >
-                                        {joinedIds.includes(challenge.id) ? '⏳ 진행중' : '참여하기'}
+                                        {joinedIds.includes(activity.id) ? '⏳ 진행중' : '참여하기'}
                                     </JoinBtn>
                                 </ActivityCard>
                             ))
