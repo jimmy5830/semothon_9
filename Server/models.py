@@ -1,4 +1,5 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
+from datetime import datetime, timezone
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
 from database import Base
@@ -29,3 +30,48 @@ class Badge(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
     user = relationship("User", back_populates="badges")
+
+
+class Activity(Base):
+    __tablename__ = "activities"
+
+    id   = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    type = Column(String, nullable=False)
+    desc = Column(String, nullable=False, default="")
+
+
+class MatchQueue(Base):
+    __tablename__ = "match_queue"
+
+    id          = Column(Integer, primary_key=True, index=True)
+    user_id     = Column(Integer, ForeignKey("users.id"), nullable=False)
+    activity_id = Column(Integer, ForeignKey("activities.id"), nullable=False)
+    created_at  = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    user     = relationship("User")
+    activity = relationship("Activity")
+
+
+class Room(Base):
+    __tablename__ = "rooms"
+
+    id          = Column(Integer, primary_key=True, index=True)
+    activity_id = Column(Integer, ForeignKey("activities.id"), nullable=False)
+    created_at  = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    activity = relationship("Activity")
+    members  = relationship("RoomMember", back_populates="room")
+
+
+class RoomMember(Base):
+    __tablename__ = "room_members"
+
+    id      = Column(Integer, primary_key=True, index=True)
+    room_id = Column(Integer, ForeignKey("rooms.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    status  = Column(String, nullable=False, default="waiting")  # waiting / started / completed
+
+    room = relationship("Room", back_populates="members")
+    user = relationship("User")
+    
