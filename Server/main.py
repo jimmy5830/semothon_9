@@ -91,6 +91,13 @@ def get_current_user(user_id: int = 1, db: Session = Depends(get_db)):
 def root():
     return {"message": "서버가 정상 작동 중입니다. /docs로 이동하세요."}
 
+# [POST] 회원가입
+@app.post('/signup')
+def signup(email: str, phone: str, db: Session = Depends(get_db)):
+    user = models.User(email=email, phone=phone)
+    db.add(user); db.commit(); db.refresh(user)
+    return {'message': 'Success', 'user': user}
+
 # [GET] 내 프로필 조회
 @app.get("/users/me", response_model=UserResponse, tags=["Users"])
 def read_user_me(current_user: models.User = Depends(get_current_user)):
