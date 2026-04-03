@@ -1,51 +1,10 @@
-.App {
-  text-align: center;
-}
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-}
-
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/*
 @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap');
-
 
 @import url('https://fonts.googleapis.com/css2?family=Righteous&display=swap');
 
 :root {
   --green-primary: #03C75A;
-  --green-dark:    #028A3D;
+  --green-dark: #03c75a;
   --green-light:   #ADFFD2;
   --green-pale:    #F0FFF7;
 
@@ -82,8 +41,9 @@ html, body, #root {
   -webkit-font-smoothing: antialiased;
 }
 
+/* ── 공통 스크린 컨테이너 ── */
 .screen {
-  max-width: 390px;
+  max-width: 390px;  /* 아이폰 기준 */
   width: 100%;
   min-height: 100vh;
   margin: 0 auto;
@@ -92,7 +52,7 @@ html, body, #root {
   flex-direction: column;
   position: relative;
   overflow-x: hidden;
-  overflow-y: hidden;
+  overflow-y: hidden;    /* 추가 */
 }
 
 .screen-body {
@@ -102,6 +62,7 @@ html, body, #root {
   overflow-y: auto;
 }
 
+/* ── 하단 고정 버튼 ── */
 .bottom-bar {
   position: sticky;
   bottom: 0;
@@ -110,6 +71,7 @@ html, body, #root {
   border-top: 1px solid var(--gray-100);
 }
 
+/* ── 버튼 ── */
 .btn {
   width: 100%;
   padding: 17px;
@@ -159,7 +121,7 @@ html, body, #root {
 
 .btn-social:hover { background: var(--gray-50); }
 
-
+/* ── 인풋 ── */
 .input-field {
   width: 100%;
   padding: 15px 16px;
@@ -181,6 +143,7 @@ html, body, #root {
   background: var(--white);
 }
 
+/* ── 칩/태그 ── */
 .chip {
   padding: 9px 16px;
   border-radius: var(--radius-full);
@@ -204,7 +167,7 @@ html, body, #root {
   font-weight: 600;
 }
 
-
+/* ── 구분선 ── */
 .divider {
   display: flex;
   align-items: center;
@@ -224,6 +187,7 @@ html, body, #root {
   color: var(--gray-400);
 }
 
+/* ── 프로그레스 바 ── */
 .progress-bar-wrap {
   display: flex;
   gap: 4px;
@@ -242,6 +206,7 @@ html, body, #root {
   background: var(--green-primary);
 }
 
+/* ── 뒤로가기 버튼 ── */
 .back-btn {
   background: none;
   border: none;
@@ -258,4 +223,3 @@ html, body, #root {
 
 .back-btn:hover { color: var(--gray-900); }
 .back-btn:active { transform: none; }
-*/
