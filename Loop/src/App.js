@@ -8,8 +8,6 @@ import Matching from './pages/Matching';
 import Records from './pages/Records';
 import MyPage from './pages/MyPage';
 import BottomNav from './components/BottomNav';
-import MyActivity from './pages/MyActivity';
-import NPCActivity from './pages/NPCActivity';
 
 const globalStyles = css`
   @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
@@ -21,8 +19,8 @@ const globalStyles = css`
   }
 
   :root {
-    --color-primary: #2E7D32;
-    --color-primary-light: #4CAF50;
+    --color-primary: #03C75A;
+    --color-primary-light: #66D78A;
     --color-primary-pale: #E8F5E9;
     --color-accent: #FF8F00;
     --color-accent-light: #FFB300;
@@ -83,8 +81,6 @@ function AppInner() {
           <Route path="/matching" element={<Matching />} />
           <Route path="/records"  element={<Records />} />
           <Route path="/mypage"   element={<MyPage />} />
-          <Route path="/myActivity" element={<MyActivity />} />
-          <Route path="/npcactivity" element={<NPCActivity />} />
         </Routes>
       </PageArea>
       <BottomNav />
@@ -104,26 +100,3 @@ function App() {
 }
 
 export default App;
-
-/*
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Auth from "./pages/Auth.jsx";
-import Signup from "../../Documents/GitHub/semothon_9/Loop/src/pages/Signup";
-import Profile from "../../Documents/GitHub/semothon_9/Loop/src/pages/Profile";
-import Home from "./pages/Home";
-
-function App() {
-    return (
-        <BrowserRouter>
-            <Routes>
-                <Route path="/" element={<Auth />} />
-                <Route path="/signup" element={<Signup />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/home" element={<Home />} />
-            </Routes>
-        </BrowserRouter>
-    );
-}
-
-export default App;
-*/

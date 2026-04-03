@@ -1,15 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from '@emotion/styled';
 
 /* ─── 임시 데이터 ─── */
 const MOCK_RECORDS = [
   { id: 1, activity: '쓰레기 줍기', location: '한강공원',  date: '2025-03-28', point: 50,  status: 'approved', emoji: '🗑️' },
-  { id: 2, activity: '플로깅',      location: '북한산',      date: '2025-03-25', point: 80,  status: 'pending',  emoji: '🏃' },
-  { id: 3, activity: '쓰레기 줍기', location: '홍대입구역',  date: '2025-03-20', point: 50,  status: 'rejected', emoji: '🗑️' },
+  { id: 2, activity: '분리수거',    location: '마포구 자택', date: '2025-03-27', point: 30,  status: 'approved', emoji: '♻️' },
+  { id: 3, activity: '플로깅',      location: '북한산',      date: '2025-03-25', point: 80,  status: 'pending',  emoji: '🏃' },
+  { id: 4, activity: '해안 정화',   location: '인천 을왕리', date: '2025-03-22', point: 120, status: 'approved', emoji: '🌊' },
+  { id: 5, activity: '쓰레기 줍기', location: '홍대입구역',  date: '2025-03-20', point: 50,  status: 'rejected', emoji: '🗑️' },
 ];
 
 const STATUS_MAP = {
-  approved: { label: '인증 완료', color: '#2E7D32', bg: '#E8F5E9' },
+  approved: { label: '인증 완료', color: '#03C75A', bg: '#E8F5E9' },
   pending:  { label: '검토 중',   color: '#E65100', bg: '#FFF3E0' },
   rejected: { label: '반려',      color: '#B71C1C', bg: '#FFEBEE' },
 };
@@ -114,8 +116,74 @@ const EmptyState = styled.div`
   span { font-size: 14px; color: var(--color-text-secondary); }
 `;
 
+const DetailOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+`;
+
+const DetailModal = styled.div`
+  width: 100%;
+  max-width: 360px;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.25);
+  max-height: 90vh;
+  overflow-y: auto;
+`;
+
+const DetailImage = styled.img`
+  width: 100%;
+  border-radius: 12px;
+  height: auto;
+  object-fit: cover;
+  display: block;
+  margin-bottom: 12px;
+`;
+
+const DetailClose = styled.button`
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  font-weight: 800;
+  padding: 4px 8px;
+  cursor: pointer;
+  float: right;
+`;
+
+const DetailText = styled.p`
+  font-size: 13px;
+  color: var(--color-text);
+  margin-top: 10px;
+`;
+
 export default function Records() {
-  const approved = MOCK_RECORDS.filter(r => r.status === 'approved');
+  const [records, setRecords] = useState([]);
+  const [selectedRecord, setSelectedRecord] = useState(null);
+
+  // 2️⃣ 페이지가 마운트될 때 localStorage에서 불러오기
+  useEffect(() => {
+    const saved = localStorage.getItem('records');
+    if (saved) setRecords(JSON.parse(saved));
+  }, []);
+
+  // 3️⃣ localStorage 변화를 감지해서 상태 업데이트
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const saved = localStorage.getItem('records');
+      if (saved) setRecords(JSON.parse(saved));
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  const approved = records.filter(r => r.status === 'approved');
   const totalPoints = approved.reduce((s, r) => s + r.point, 0);
 
   return (
@@ -125,10 +193,9 @@ export default function Records() {
         <p>지금까지 쌓아온 친환경 발자국</p>
       </TopBar>
 
-      {/* 통계 */}
       <StatRow>
         <StatCard>
-          <div className="val">{MOCK_RECORDS.length}</div>
+          <div className="val">{records.length}</div>
           <div className="label">총 활동 수</div>
         </StatCard>
         <StatCard>
@@ -141,25 +208,25 @@ export default function Records() {
         </StatCard>
       </StatRow>
 
-      {/* 기록 목록 */}
       <Section>
         <SectionHeader>
           <h3>활동 내역</h3>
         </SectionHeader>
 
-        {MOCK_RECORDS.length === 0 ? (
+        {records.length === 0 ? (
           <EmptyState>
             <p>📭 아직 활동 기록이 없어요</p>
             <span>홈에서 첫 활동을 인증해보세요!</span>
           </EmptyState>
         ) : (
-          MOCK_RECORDS.map(record => (
-            <RecordCard key={record.id}>
+          records.map(record => (
+            <RecordCard key={record.id} onClick={() => setSelectedRecord(record)} style={{ cursor: 'pointer' }}>
               <EmojiCircle>{record.emoji}</EmojiCircle>
               <RecordInfo>
                 <div className="act">{record.activity}</div>
                 <div className="meta">📍 {record.location}</div>
                 <div className="meta">📅 {record.date}</div>
+                {record.description && <div className="meta">📝 {record.description}</div>}
               </RecordInfo>
               <RecordRight>
                 <StatusBadge status={record.status}>
@@ -171,6 +238,31 @@ export default function Records() {
           ))
         )}
       </Section>
+
+      {selectedRecord && (
+        <DetailOverlay onClick={() => setSelectedRecord(null)}>
+          <DetailModal onClick={e => e.stopPropagation()}>
+            <DetailClose onClick={() => setSelectedRecord(null)}>✕ 닫기</DetailClose>
+            <div style={{ marginBottom: 8, color: 'var(--color-text-secondary)', fontSize: 12 }}>
+              {selectedRecord.status === 'pending' ? '검토 중' : '인증 완료'} • {selectedRecord.date || ''}
+            </div>
+            {selectedRecord.photo ? (
+              <DetailImage src={selectedRecord.photo} alt="활동 인증 사진" />
+            ) : (
+              <div style={{
+                width: '100%', height: 180, borderRadius: 12, background: '#F0F0EC', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#8F8F87'
+              }}>
+                사진 없음
+              </div>
+            )}
+            <DetailText>활동: {selectedRecord.activity}</DetailText>
+            <DetailText>위치: {selectedRecord.location}</DetailText>
+            {selectedRecord.description && (
+              <DetailText>설명: {selectedRecord.description}</DetailText>
+            )}
+          </DetailModal>
+        </DetailOverlay>
+      )}
     </Page>
   );
 }

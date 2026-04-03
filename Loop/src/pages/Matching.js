@@ -7,29 +7,29 @@ import { keyframes as kf } from '@emotion/react';
 const ICONS = {
     tumbler: (
         <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-            <rect x="8" y="4" width="12" height="2.5" rx="1.25" fill="#03C75A"/>
+            <rect x="8" y="4" width="12" height="2.5" rx="1.25" fill="var(--color-primary)"/>
             <path d="M9.5 6.5L10.5 23C10.5 23.55 10.95 24 11.5 24H16.5C17.05 24 17.5 23.55 17.5 23L18.5 6.5H9.5Z"
-                  fill="var(--color-primary-pale)" stroke="#03C75A" strokeWidth="1.5" strokeLinejoin="round"/>
-            <path d="M11 11H17" stroke="#03C75A" strokeWidth="1.5" strokeLinecap="round"/>
-            <path d="M11.5 15H16.5" stroke="#03C75A" strokeWidth="1.3" strokeLinecap="round" strokeOpacity="0.6"/>
+                  fill="var(--color-primary-pale)" stroke="var(--color-primary)" strokeWidth="1.5" strokeLinejoin="round"/>
+            <path d="M11 11H17" stroke="var(--color-primary)" strokeWidth="1.5" strokeLinecap="round"/>
+            <path d="M11.5 15H16.5" stroke="var(--color-primary)" strokeWidth="1.3" strokeLinecap="round" strokeOpacity="0.6"/>
         </svg>
     ),
     trash: (
         <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
             <path d="M6 10L7.5 22C7.5 22.55 7.95 23 8.5 23H19.5C20.05 23 20.5 22.55 20.5 22L22 10H6Z"
-                  fill="var(--color-primary-pale)" stroke="#03C75A" strokeWidth="1.5" strokeLinejoin="round"/>
-            <path d="M4 10H24" stroke="#03C75A" strokeWidth="1.5" strokeLinecap="round"/>
-            <rect x="10" y="5" width="8" height="3" rx="1.5" stroke="#03C75A" strokeWidth="1.5" fill="none"/>
-            <path d="M12 14V19M16 14V19" stroke="#03C75A" strokeWidth="1.5" strokeLinecap="round"/>
+                  fill="var(--color-primary-pale)" stroke="var(--color-primary)" strokeWidth="1.5" strokeLinejoin="round"/>
+            <path d="M4 10H24" stroke="var(--color-primary)" strokeWidth="1.5" strokeLinecap="round"/>
+            <rect x="10" y="5" width="8" height="3" rx="1.5" stroke="var(--color-primary)" strokeWidth="1.5" fill="none"/>
+            <path d="M12 14V19M16 14V19" stroke="var(--color-primary)" strokeWidth="1.5" strokeLinecap="round"/>
         </svg>
     ),
     recycle: (
         <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-            <path d="M14 5L17 10H11L14 5Z" fill="#03C75A"/>
-            <path d="M14 23L11 18H17L14 23Z" fill="#03C75A"/>
-            <path d="M5 17L8 12L10.5 16.5" stroke="#03C75A" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-            <path d="M23 17L20 12L17.5 16.5" stroke="#03C75A" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-            <path d="M8 17H20" stroke="#03C75A" strokeWidth="1.8" strokeLinecap="round"/>
+            <path d="M14 5L17 10H11L14 5Z" fill="var(--color-primary)"/>
+            <path d="M14 23L11 18H17L14 23Z" fill="var(--color-primary)"/>
+            <path d="M5 17L8 12L10.5 16.5" stroke="var(--color-primary)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+            <path d="M23 17L20 12L17.5 16.5" stroke="var(--color-primary)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+            <path d="M8 17H20" stroke="var(--color-primary)" strokeWidth="1.8" strokeLinecap="round"/>
         </svg>
     ),
     plogging: (
@@ -112,9 +112,9 @@ const FilterScroll = styled.div`
 
 const FilterChip = styled.button`
   flex-shrink: 0;
-  background: ${p => p.active ? '#03C75A' : 'var(--color-surface)'};
+  background: ${p => p.active ? 'var(--color-primary)' : 'var(--color-surface)'};
   color: ${p => p.active ? 'white' : 'var(--color-text-secondary)'};
-  border: 1.5px solid ${p => p.active ? '#03C75A' : 'var(--color-border)'};
+  border: 1.5px solid ${p => p.active ? 'var(--color-primary)' : 'var(--color-border)'};
   border-radius: 40px;
   padding: 8px 16px;
   font-family: var(--font);
@@ -157,7 +157,7 @@ const IconCircle = styled.div`
   height: 56px;
   border-radius: 16px;
   background: var(--color-primary-pale);
-  border: 1.5px solid #03C75A;
+  border: 1.5px solid var(--color-border);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -173,7 +173,7 @@ const ActivityInfo = styled.div`
 
 const JoinBtn = styled.button`
   flex-shrink: 0;
-  background: ${p => p.joined ? 'var(--color-border)' : '#03C75A'};
+  background: ${p => p.joined ? 'var(--color-border)' : 'var(--color-primary)'};
   color: ${p => p.joined ? 'var(--color-text-secondary)' : 'white'};
   border: none;
   border-radius: var(--radius-sm);
@@ -240,7 +240,7 @@ const CoreCircle = styled.div`
   height: 140px;
   border-radius: 50%;
   background: ${p => p.done
-    ? 'linear-gradient(135deg, #03C75A, #1B5E20)'
+    ? 'linear-gradient(135deg, var(--color-primary), #03C75A)'
     : 'linear-gradient(135deg, #E8F5E9, #C8E6C9)'};
   box-shadow: ${p => p.done
     ? '0 8px 32px rgba(46,125,50,0.4)'
@@ -294,12 +294,23 @@ const CancelBtn = styled.button`
 `;
 
 /* ─── 컴포넌트 ─── */
-export default function Matching() {
+export default function Matching({ activity, onBack, onEnd, onConfirm }) {
     const [selectedType, setSelectedType]   = useState('전체');
     const [joinedIds, setJoinedIds]         = useState([]);
     const [matchingItem, setMatchingItem]   = useState(null);
     const [matchDone, setMatchDone]         = useState(false);
     const [roomItem, setRoomItem]           = useState(null);
+
+    const handleCancel = () => {
+    setMatchingItem(null);
+    setMatchDone(false);
+};
+
+    const approveRecord = (recordId) => {
+    const records = JSON.parse(localStorage.getItem('records')) || [];
+    const updated = records.map(r => r.id === recordId ? {...r, status: 'approved'} : r);
+  localStorage.setItem('records', JSON.stringify(updated));
+};
 
     const filtered = selectedType === '전체'
         ? MOCK_CHALLENGES
@@ -311,23 +322,66 @@ export default function Matching() {
         setTimeout(() => setMatchDone(true), 2500);
     };
 
-    const handleCancel = () => {
-        setMatchingItem(null);
-        setMatchDone(false);
+    const handleEnterRoom = () => {
+    setJoinedIds(prev => [...prev, matchingItem.id]); // ✅ 추가
+    setRoomItem(matchingItem);
+    setMatchingItem(null);
+    setMatchDone(false);
     };
 
-    const handleConfirm = () => {
-        setJoinedIds(prev => [...prev, matchingItem.id]);
-        setRoomItem(matchingItem);
-        setMatchingItem(null);
-        setMatchDone(false);
+    const getEmoji = (type) => {
+    switch(type) {
+        case '텀블러': return '🥤';
+        case '쓰레기 줍기': return '🗑️';
+        case '분리수거': return '♻️';
+        case '플로깅': return '🏃';
+        case '해안 정화': return '🌊';
+        default: return '✨';
+        }
     };
+
+ const handleConfirm = (photo, description) => {
+    // ❗ 1. roomItem 없으면 종료 (에러 방지)
+    if (!roomItem) return;
+
+    // 사용자 정보
+    const user = JSON.parse(localStorage.getItem('user')) || { name: '나' };
+
+    // ❗ 2. 값 미리 저장 (roomItem 사라지기 전에)
+    const activityType = roomItem.type;
+    const emoji = getEmoji(activityType);
+
+    // 📌 3. records 저장 (최대 8개 유지 - 오래된 것부터 자동 삭제)
+    const newRecord = {
+        id: Date.now(),
+        user: user.name,
+        activity: activityType,
+        location: '내 위치',
+        date: new Date().toISOString().slice(0,10),
+        point: 0,
+        status: 'pending',
+        emoji: emoji,
+        photo: photo || null,
+        description: description ? description : ''
+    };
+
+    const existingRecords = JSON.parse(localStorage.getItem('records')) || [];
+    const updatedRecords = [newRecord, ...existingRecords].slice(0, 8);
+    localStorage.setItem('records', JSON.stringify(updatedRecords));
+    if (onConfirm) onConfirm(newRecord);
+    //setRoomItem(null);
+    const existingFeed = JSON.parse(localStorage.getItem('feed')) || [];
+
+    // 📌 6. 홈 강제 업데이트 (같은 탭 문제 해결)
+    window.dispatchEvent(new Event('storage'));
+};
 
     if (roomItem) {
         return (
             <MatchingRoom
                 activity={roomItem}
                 onBack={() => setRoomItem(null)}
+                onConfirm={handleConfirm}
                 onEnd={() => {
                     setJoinedIds(prev => prev.filter(id => id !== roomItem.id));
                     setRoomItem(null);
@@ -364,7 +418,7 @@ export default function Matching() {
                     {matchDone ? (
                         <JoinBtn
                             joined={false}
-                            onClick={handleConfirm}
+                            onClick={handleEnterRoom}
                             style={{ marginTop: 36, padding: '13px 40px', animation: `${fadeSlideUp} 0.4s ease both` }}
                         >
                             확인
@@ -417,7 +471,7 @@ export default function Matching() {
                                             }
                                         }}
                                     >
-                                        {joinedIds.includes(challenge.id) ? '✅ 참여 중' : '참여하기'}
+                                        {joinedIds.includes(challenge.id) ? '⏳ 진행중' : '참여하기'}
                                     </JoinBtn>
                                 </ActivityCard>
                             ))

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from '@emotion/styled';
 import { useNavigate } from 'react-router-dom';
 
@@ -43,7 +43,7 @@ const PointBadge = styled.div`
 
 const BannerCard = styled.div`
   margin: 20px 20px 0;
-  background: linear-gradient(135deg, var(--color-primary) 0%, #1B5E20 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, #03C75A 100%);
   border-radius: var(--radius-lg);
   padding: 24px 20px;
   color: white;
@@ -183,22 +183,126 @@ const LikeBtn = styled.button`
   font-family: var(--font);
 `;
 
+const ApproveBtn = styled.button`
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 6px 16px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-top: 4px;
+`;
+
+const DetailOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+`;
+
+const DetailModal = styled.div`
+  width: 100%;
+  max-width: 360px;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.25);
+  max-height: 90vh;
+  overflow-y: auto;
+`;
+
+const DetailImage = styled.img`
+  width: 100%;
+  border-radius: 12px;
+  height: auto;
+  object-fit: cover;
+  display: block;
+  margin-bottom: 12px;
+`;
+
+const DetailClose = styled.button`
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  font-weight: 800;
+  padding: 4px 8px;
+  cursor: pointer;
+  float: right;
+`;
+
+const DetailText = styled.p`
+  font-size: 13px;
+  color: var(--color-text);
+  margin-top: 10px;
+`;
+
+const FeedPhoto = styled.img`
+  width: 56px;
+  height: 56px;
+  border-radius: 10px;
+  object-fit: cover;
+  flex-shrink: 0;
+`;
+
 export default function Home() {
   const navigate = useNavigate();
   const [likedIds, setLikedIds] = useState([]);
+  const [records, setRecords] = useState([]);
+  const [user, setUser] = useState(MOCK_USER);
+  const [selectedRecord, setSelectedRecord] = useState(null);
+
+  // 사용자 정보 localStorage에 저장 및 불러오기
+  useEffect(() => {
+    localStorage.setItem('user', JSON.stringify(MOCK_USER));
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) setUser(JSON.parse(savedUser));
+  }, []);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('records');
+    if (saved) setRecords(JSON.parse(saved));
+  }, []);
+
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const saved = localStorage.getItem('records');
+      if (saved) setRecords(JSON.parse(saved));
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   const toggleLike = (id) =>
     setLikedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+
+  const approveRecord = (recordId) => {
+    const updated = records.map(r => 
+      r.id === recordId ? {...r, status: 'approved', point: 50} : r
+    );
+    setRecords(updated);
+    localStorage.setItem('records', JSON.stringify(updated));
+  };
+
+  // 승인된 기록만 포인트 계산
+  const approvedRecords = records.filter(r => r.status === 'approved');
+  const totalPoints = approvedRecords.reduce((sum, r) => sum + r.point, 0);
 
   return (
     <Page>
       {/* 상단 인사 */}
       <TopBar>
         <Greeting>
-          <h1>안녕하세요, {MOCK_USER.name}님 👋</h1>
+          <h1>안녕하세요, {user.name}님 👋</h1>
           <p>오늘도 지구를 지켜봐요!</p>
         </Greeting>
-        <PointBadge>🌱 {MOCK_USER.point.toLocaleString()}P</PointBadge>
+        <PointBadge>🌱 {totalPoints.toLocaleString()}P</PointBadge>
       </TopBar>
 
       {/* 활동 배너 */}
@@ -227,21 +331,69 @@ export default function Home() {
           <button onClick={() => navigate('/records')}>전체보기</button>
         </SectionHeader>
 
-        {MOCK_FEED.map(item => (
-          <FeedCard key={item.id}>
-            <EmojiCircle>{item.emoji}</EmojiCircle>
-            <FeedInfo>
-              <div className="name">{item.user}</div>
-              <div className="act">{item.activity}</div>
-              <div className="meta">📍 {item.location} · {item.time}</div>
-            </FeedInfo>
-            <LikeBtn onClick={() => toggleLike(item.id)}>
-              <span style={{ fontSize: 20 }}>{likedIds.includes(item.id) ? '💚' : '🤍'}</span>
-              {item.likes + (likedIds.includes(item.id) ? 1 : 0)}
-            </LikeBtn>
-          </FeedCard>
-        ))}
+        {records.length === 0 ? (
+  <p>아직 활동이 없어요 😢</p>
+) : (
+  records.map(item => (
+    <FeedCard key={item.id} onClick={() => setSelectedRecord(item)} style={{ cursor: 'pointer' }}>
+      <EmojiCircle>{item.emoji}</EmojiCircle>
+      <FeedInfo>
+        <div className="name">{item.user || user.name}</div>
+        <div className="act">{item.activity}</div>
+        <div className="meta">
+          📍 {item.location} • {item.status === 'pending' ? '검토 중 ⏳' : '인증 완료 ✅'}
+        </div>
+      </FeedInfo>
+      {item.status === 'pending' ? (
+        <ApproveBtn
+          onClick={e => {
+            e.stopPropagation();
+            approveRecord(item.id);
+          }}
+        >
+          승인
+        </ApproveBtn>
+      ) : (
+        <LikeBtn
+          onClick={e => {
+            e.stopPropagation();
+            toggleLike(item.id);
+          }}
+        >
+          <span style={{ fontSize: 20 }}>
+            {likedIds.includes(item.id) ? '💚' : '🤍'}
+          </span>
+        </LikeBtn>
+      )}
+    </FeedCard>
+  ))
+)}
       </Section>
+
+      {selectedRecord && (
+        <DetailOverlay onClick={() => setSelectedRecord(null)}>
+          <DetailModal onClick={e => e.stopPropagation()}>
+            <DetailClose onClick={() => setSelectedRecord(null)}>✕ 닫기</DetailClose>
+            <div style={{ marginBottom: 8, color: 'var(--color-text-secondary)', fontSize: 12 }}>
+              {selectedRecord.status === 'pending' ? '검토 중' : '인증 완료'} • {selectedRecord.date || ''}
+            </div>
+            {selectedRecord.photo ? (
+              <DetailImage src={selectedRecord.photo} alt="활동 인증 사진" />
+            ) : (
+              <div style={{
+                width: '100%', height: 180, borderRadius: 12, background: '#F0F0EC', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#8F8F87'
+              }}>
+                사진 없음
+              </div>
+            )}
+            <DetailText>활동: {selectedRecord.activity}</DetailText>
+            <DetailText>위치: {selectedRecord.location}</DetailText>
+            {selectedRecord.description && (
+              <DetailText>설명: {selectedRecord.description}</DetailText>
+            )}
+          </DetailModal>
+        </DetailOverlay>
+      )}
     </Page>
   );
 }
